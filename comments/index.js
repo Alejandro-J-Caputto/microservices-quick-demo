@@ -25,8 +25,7 @@ app.post("/posts/:id/comments", async (req, res) => {
   const commentId = randomBytes(4).toString("hex");
   const { content } = req.body;
   const comments = commentsByPostId[req.params.id] || [];
-  console.log(content);
-  comments.push({ id: commentId, content });
+  comments.push({ id: commentId, content, status: "pending" });
   commentsByPostId[req.params.id] = comments;
   await fetch(`http://localhost:5000/events`, {
     method: "POST",
@@ -36,6 +35,7 @@ app.post("/posts/:id/comments", async (req, res) => {
         id: commentId,
         content,
         postId: req.params.id,
+        status: "pending",
       },
     }),
     headers: {
@@ -48,8 +48,25 @@ app.post("/posts/:id/comments", async (req, res) => {
   });
 });
 
-app.post("/events", (req, res) => {
-  console.log("me dispare", req.body.type);
+app.post("/events", async (req, res) => {
+  const { type, data } = req.body;
+
+  if (type === "CommentModerated") {
+    const { postId, id, status } = data;
+    const comments = commentsByPostId[postId];
+    const comment = comments.find((comment) => comment.id === id);
+    comment.status = status;
+    await fetch(`http://localhost:5000/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        type: "CommentUpdated",
+        data: { id, status, postId, content: data.content },
+      }),
+    });
+  }
 
   res.send({});
 });

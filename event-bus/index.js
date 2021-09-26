@@ -32,6 +32,13 @@ app.post("/events", async (req, res) => {
       "Content-Type": "application/json",
     },
   });
+  fetch("http://localhost:4003/events", {
+    method: "POST",
+    body: JSON.stringify(event),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 });
 
 app.listen(5000, () => {

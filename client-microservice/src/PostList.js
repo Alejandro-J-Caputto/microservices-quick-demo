@@ -7,6 +7,7 @@ export const PostList = () => {
   const fetchPost = async () => {
     const response = await fetch("http://localhost:4002/posts");
     const data = await response.json();
+    console.log(data);
     setPosts(data);
   };
   useEffect(() => {
